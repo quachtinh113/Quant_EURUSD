@@ -9,7 +9,7 @@ flowchart TD
 
     D --> E[TimeEngine rollover check]
     E --> F[RiskGuard rollover check]
-    F --> G[Build signal snapshot RSI/ADX/ATR/spread]
+    F --> G[Build signal snapshot RSI/ATR/spread]
     G -->|Snapshot fail| D
     G --> H[Evaluate risk snapshot]
 
@@ -51,6 +51,6 @@ flowchart TD
 ## Notes
 
 - Entry gate: minute `01/31`, session window, one basket per 30-minute block, daily max baskets.
-- Signal stack: `RSI H1 + RSI M30 + M15 cross + ADX + spread`.
+- Signal stack: `RSI H1/M30/M15 alignment + M15 breakout + spread`.
 - Basket management: TP mode (money/ATR), emergency exit, DCA spacing.
 - Risk guard can block new entries and/or DCA.

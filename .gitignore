@@ -5,4 +5,4 @@ nowtrading/*.log
 nowtrading/*.out.log
 nowtrading/*.err.log
 nowtrading/*_basket_log.csv
-
+dashboard/state.json

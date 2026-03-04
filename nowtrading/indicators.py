@@ -20,6 +20,9 @@ class NtIndicators:
                 rsi_m30=self._source.rsi(self._symbol, "M30", 14, 1),
                 rsi_m15_prev2=self._source.rsi(self._symbol, "M15", 14, 2),
                 rsi_m15_prev1=self._source.rsi(self._symbol, "M15", 14, 1),
+                m15_close_prev1=self._source.close(self._symbol, "M15", 1),
+                m15_high_prev2=self._source.high(self._symbol, "M15", 2),
+                m15_low_prev2=self._source.low(self._symbol, "M15", 2),
                 rsi_h4=self._source.rsi(self._symbol, "H4", 14, 1),
                 rsi_d1=self._source.rsi(self._symbol, "D1", 14, 1),
                 adx_h1=self._source.adx(self._symbol, "H1", 14, 1),
@@ -28,4 +31,3 @@ class NtIndicators:
             )
         except Exception:
             return None
-

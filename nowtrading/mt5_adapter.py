@@ -79,6 +79,14 @@ class Mt5BrokerAdapter:
         return mt5.copy_rates_from_pos(symbol, tf, 0, bars)
 
     @staticmethod
+    def _single_bar(symbol: str, timeframe: str, shift: int) -> Any:
+        tf = TIMEFRAME_MAP[timeframe]
+        rates = mt5.copy_rates_from_pos(symbol, tf, shift, 1)
+        if rates is None or len(rates) == 0:
+            raise RuntimeError("No rates data for requested bar")
+        return rates[0]
+
+    @staticmethod
     def _ensure_value(values: list[float | None], shift: int) -> float:
         target = len(values) - shift - 1
         if target < 0 or target >= len(values):
@@ -118,6 +126,18 @@ class Mt5BrokerAdapter:
         closes = [float(r["close"]) for r in rates]
         values = atr_series(highs, lows, closes, period)
         return self._ensure_value(values, shift)
+
+    def close(self, symbol: str, timeframe: str, shift: int) -> float:
+        bar = self._single_bar(symbol, timeframe, shift)
+        return float(bar["close"])
+
+    def high(self, symbol: str, timeframe: str, shift: int) -> float:
+        bar = self._single_bar(symbol, timeframe, shift)
+        return float(bar["high"])
+
+    def low(self, symbol: str, timeframe: str, shift: int) -> float:
+        bar = self._single_bar(symbol, timeframe, shift)
+        return float(bar["low"])
 
     @staticmethod
     def bid(symbol: str) -> float:

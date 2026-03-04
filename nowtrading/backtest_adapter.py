@@ -229,12 +229,17 @@ class BacktestAdapter:
                 return True
         return False
 
-    def _tf_indicator(self, timeframe: str, name: str, shift: int) -> float:
+    def _tf_target_index(self, timeframe: str, shift: int) -> int:
         tf = self._data[timeframe]
         idx = bisect_left(tf.times, self._now) - 1
         target = idx - (shift - 1)
         if target < 0:
             raise RuntimeError("Not enough history")
+        return target
+
+    def _tf_indicator(self, timeframe: str, name: str, shift: int) -> float:
+        tf = self._data[timeframe]
+        target = self._tf_target_index(timeframe, shift)
         arr = tf.rsi14 if name == "rsi" else tf.adx14 if name == "adx" else tf.atr14
         value = arr[target]
         if value is None:
@@ -255,6 +260,18 @@ class BacktestAdapter:
         if period != 14:
             raise RuntimeError("Backtest adapter supports period=14 only")
         return self._tf_indicator(timeframe, "atr", shift)
+
+    def close(self, symbol: str, timeframe: str, shift: int) -> float:
+        tf = self._data[timeframe]
+        return tf.closes[self._tf_target_index(timeframe, shift)]
+
+    def high(self, symbol: str, timeframe: str, shift: int) -> float:
+        tf = self._data[timeframe]
+        return tf.highs[self._tf_target_index(timeframe, shift)]
+
+    def low(self, symbol: str, timeframe: str, shift: int) -> float:
+        tf = self._data[timeframe]
+        return tf.lows[self._tf_target_index(timeframe, shift)]
 
     def _process_pending_orders(self) -> None:
         if not self._pending_orders:
@@ -347,4 +364,3 @@ class BacktestAdapter:
             initial_balance=initial_balance,
             data=data,
         )
-

@@ -28,6 +28,9 @@ class NtSignalSnapshot:
     rsi_m30: float = 0.0
     rsi_m15_prev2: float = 0.0
     rsi_m15_prev1: float = 0.0
+    m15_close_prev1: float = 0.0
+    m15_high_prev2: float = 0.0
+    m15_low_prev2: float = 0.0
     rsi_h4: float = 0.0
     rsi_d1: float = 0.0
     adx_h1: float = 0.0
@@ -86,4 +89,3 @@ class NtOrder:
     symbol: str
     magic: int
     comment: str
-

@@ -9,7 +9,7 @@ The strategy logic is preserved: time-gated entries, RSI multi-timeframe signal 
 - `nowtrading/utils.py`: pip/volume normalization and basket comment helpers.
 - `nowtrading/time_engine.py`: 01/31 minute and 30-minute block gating.
 - `nowtrading/indicators.py`: signal snapshot builder from a data source.
-- `nowtrading/signal_gate.py`: RSI + ADX + spread entry filter.
+- `nowtrading/signal_gate.py`: RSI + spread entry filter.
 - `nowtrading/risk_guard.py`: drawdown/free-margin/news/correlation guard checks.
 - `nowtrading/basket_manager.py`: open/close basket and DCA order execution.
 - `nowtrading/dca_engine.py`: spacing-based DCA trigger.
@@ -20,6 +20,7 @@ The strategy logic is preserved: time-gated entries, RSI multi-timeframe signal 
 - `nowtrading/backtest_adapter.py`: simulation broker for historical replay.
 - `nowtrading/backtest_runner.py`: backtest runner over MT5 history.
 - `nowtrading/mt5_live_test.py`: one-shot open/close live test.
+- `dashboard/server.py`: lightweight local web dashboard for bot control and monitoring.
 
 ## Strategy Rules
 
@@ -30,16 +31,17 @@ The strategy logic is preserved: time-gated entries, RSI multi-timeframe signal 
 - Optional session gate via `enable_london_ny_only`, `start_hour`, `end_hour`.
 - Daily basket counter resets on day rollover.
 
-### Entry Signal Stack (RSI 14 on H1/M30/M15)
+### Entry Signal Stack (RSI 14 + M15 Breakout + Spread)
 
 All filters must pass:
 
-1. Trend filter (H1): BUY only if `RSI_H1 > 55`; SELL only if `RSI_H1 < 45`.
-2. Pullback filter (M30): BUY in `[40..50]`; SELL in `[50..60]`.
-3. Trigger filter (M15 closed bars):
-   - BUY cross up 40: `prev2 <= 40` and `prev1 > 40`
-   - SELL cross down 60: `prev2 >= 60` and `prev1 < 60`
-4. Additional filters: `spread_points <= max_spread_points` and `ADX_H1 > 22`.
+1. RSI alignment:
+   - BUY when `RSI_H1 > 50`, `RSI_M30 > 50`, `RSI_M15_prev1 > 50`
+   - SELL when `RSI_H1 < 50`, `RSI_M30 < 50`, `RSI_M15_prev1 < 50`
+2. M15 breakout confirm (closed bars):
+   - BUY only if `M15_close_prev1 > M15_high_prev2`
+   - SELL only if `M15_close_prev1 < M15_low_prev2`
+3. Spread filter: `spread_points <= max_spread_points`.
 
 ### Basket Structure
 
@@ -52,7 +54,7 @@ All filters must pass:
 `NowTradingBasketEA` depends on adapters (interfaces) you provide:
 
 - `NtBroker`: pricing + execution + positions/orders access.
-- `NtIndicatorSource`: RSI/ADX/ATR + bid/ask/point.
+- `NtIndicatorSource`: RSI/ADX/ATR + OHLC by timeframe + bid/ask/point.
 - `NtAccountSource`: account equity/balance/margin/free margin.
 
 Example:
@@ -114,3 +116,24 @@ python -m nowtrading.backtest_runner `
   --disable-session-filter
 ```
 
+## Run Dashboard
+
+Start local dashboard:
+
+```powershell
+python dashboard\server.py
+```
+
+Open browser:
+
+```text
+http://127.0.0.1:8787
+```
+
+Dashboard features:
+
+- Start/stop/restart `live_runner` from browser.
+- Persist runner config in `dashboard/state.json`.
+- Show MT5 account snapshot and algo-trading status.
+- Show bot positions by magic number.
+- Tail `live_runner` log and basket event CSV in one screen.

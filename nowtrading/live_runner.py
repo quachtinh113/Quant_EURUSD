@@ -7,6 +7,7 @@ from pathlib import Path
 
 from nowtrading.ea import NowTradingBasketEA, NtEaConfig
 from nowtrading.mt5_adapter import Mt5BrokerAdapter, Mt5ConnectionConfig
+from nowtrading.types import NtLogLevel, NtTpMode
 
 
 def write_log(log_path: Path, message: str) -> None:
@@ -29,10 +30,15 @@ def main() -> int:
     parser.add_argument("--base-lots", type=float, default=0.01)
     parser.add_argument("--pending-lots", type=float, default=0.0)
     parser.add_argument("--dca-lots", type=float, default=0.01)
+    parser.add_argument("--target-profit-usd", type=float, default=10.0)
+    parser.add_argument("--tp-mode", choices=("money", "atr"), default="money")
+    parser.add_argument("--atr-multiplier-tp", type=float, default=1.5)
     parser.add_argument("--loop-seconds", type=float, default=1.0)
     parser.add_argument("--duration-minutes", type=float, default=0.0)
     parser.add_argument("--magic", type=int, default=3001001)
     parser.add_argument("--max-spread-points", type=int, default=25)
+    parser.add_argument("--disable-session-filter", action="store_true")
+    parser.add_argument("--log-level", choices=("error", "info", "debug"), default="info")
     parser.add_argument("--log-path", default="nowtrading/live_runner.log")
     args = parser.parse_args()
 
@@ -58,7 +64,19 @@ def main() -> int:
         config.use_pending_limit = args.pending_lots > 0.0
         config.dca_lots = args.dca_lots
         config.max_spread_points = args.max_spread_points
-        config.log_level = 1
+        config.target_profit_usd = args.target_profit_usd
+        config.tp_mode = NtTpMode.MONEY if args.tp_mode == "money" else NtTpMode.ATR
+        config.atr_multiplier_tp = args.atr_multiplier_tp
+        if args.disable_session_filter:
+            config.enable_london_ny_only = False
+
+        config.log_level = (
+            NtLogLevel.DEBUG
+            if args.log_level == "debug"
+            else NtLogLevel.INFO
+            if args.log_level == "info"
+            else NtLogLevel.ERROR
+        )
 
         ea = NowTradingBasketEA(
             symbol=adapter.symbol,
@@ -72,7 +90,11 @@ def main() -> int:
         ea.init()
         write_log(
             log_path,
-            f"EA initialized symbol={adapter.symbol} base_lots={args.base_lots:.2f} pending_lots={args.pending_lots:.2f}",
+            (
+                f"EA initialized symbol={adapter.symbol} base_lots={args.base_lots:.2f} "
+                f"pending_lots={args.pending_lots:.2f} tp_mode={args.tp_mode} "
+                f"target_profit_usd={args.target_profit_usd:.2f} log_level={args.log_level}"
+            ),
         )
 
         start = time.time()
@@ -99,4 +121,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
