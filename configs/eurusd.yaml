@@ -1,0 +1,17 @@
+symbol: EURUSD
+session_start_vn: 7
+session_end_vn: 15
+basket_tp_usd: 10.0
+max_orders_total: 6
+spacing_pips: 15.0
+lot_ladder: [0.10, 0.15, 0.20, 0.20, 0.25, 0.30]
+max_total_lot: 1.20
+spread_limit_pips: 2.0
+adx_brake_h1: 25.0
+kill_switch_mae_pips: 60.0
+cooldown_minutes: 120
+daily_loss_limit_pct: 6.0
+max_baskets: 1
+heartbeat_stale_seconds: 20
+bridge_dir: bridge
+magic_number: 26032026
